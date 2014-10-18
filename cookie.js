@@ -1,65 +1,32 @@
-window.requestAnimFrame = (function(callback) {
-  return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame ||
-    function(callback) {
-      window.setTimeout(callback, 1000 / 60);
-    };
-})();
+$(document).ready(function () {
+  var canvas = $("#myCanvas");
+  var context = canvas[0].getContext("2d");
+  context.font = "bold 12px sans-serif";
+  var left = new Image();
+  left.src = "fortune_cookie_left.png";
+  left.onload = function () {
+    context.drawImage(left, 0, 0);
+  };
+  var right = new Image();
+  right.src = "fortune_cookie_right.png";
+  right.onload = function () {
+    context.drawImage(right, left.width - 18, 1);
+  };
 
-function drawRectangle(myRectangle, context) {
-  context.beginPath();
-  context.rect(myRectangle.x, myRectangle.y, myRectangle.width, myRectangle.height);
-  context.fillStyle = '#8ED6FF';
-  context.fill();
-  context.lineWidth = myRectangle.borderWidth;
-  context.strokeStyle = 'black';
-  context.stroke();
-}
-
-function animate(myRectangle, leftHalf, canvas, context, startTime) {
-  // update
-  var time = (new Date()).getTime() - startTime;
-
-  var linearSpeed = 100;
-  // pixels / second
-  var newX = linearSpeed * time / 1000;
-
-  if (newX < canvas.width - myRectangle.width - myRectangle.borderWidth / 2) {
-    myRectangle.x = newX;
-  }
-
-  // clear
-  context.clearRect(0, 0, canvas.width, canvas.height);
-
-  drawRectangle(myRectangle, context);
-  context.drawImage(leftHalf, 50, 50);
-
-  // request new frame
-  requestAnimFrame(function() {
-    animate(myRectangle, leftHalf, canvas, context, startTime);
+  canvas.on("click", function () {
+    $.ajax({
+      url: "http://fortunecookieapi.com/v1/cookie",
+      crossDomain: true,
+      success: function (result) {
+        context.clearRect(0, 0, canvas.width(), canvas.height());
+        result = result[0];
+        context.fillText(result.fortune.message, 100, 100);
+        context.fillText(result.lesson.english + ", " + result.lesson.chinese +
+          ", " +
+          result.lesson.pronunciation, 100, 120);
+        context.fillText("Lucky numbers: " + result.lotto.numbers.join(" "), 100,
+          140);
+      }
+    });
   });
-}
-var canvas = document.getElementById('myCanvas');
-var context = canvas.getContext('2d');
-
-var myRectangle = {
-  x: 0,
-  y: 75,
-  width: 100,
-  height: 50,
-  borderWidth: 5
-};
-
-var leftHalf = new Image();
-var rightHalf = new Image("./fortune_cookie_right.png");
-
-drawRectangle(myRectangle, context);
-
-// wait one second before starting animation
-leftHalf.onload = function() {
-  setTimeout(function() {
-    var startTime = (new Date()).getTime();
-    animate(myRectangle, leftHalf, canvas, context, startTime);
-  }, 1000);
-};
-
-leftHalf.src = "./fortune_cookie_left.png"
+});
