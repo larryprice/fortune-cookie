@@ -1,11 +1,12 @@
-window.requestAnimFrame = (function(callback) {
-  return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame ||
-    function(callback) {
+window.requestAnimFrame = (function (callback) {
+  return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame ||
+    window.oRequestAnimationFrame || window.msRequestAnimationFrame ||
+    function (callback) {
       window.setTimeout(callback, 1000 / 60);
     };
 })();
 
-$(document).ready(function() {
+$(document).ready(function () {
   var canvas = $("#myCanvas");
   var context = canvas[0].getContext("2d");
   context.font = "bold 12px sans-serif";
@@ -16,36 +17,38 @@ $(document).ready(function() {
   CookieAnimator.start(canvas, context, cookie);
 });
 
-var CookieAnimator = (function() {
-  var setUpPoke = function(canvas, context, cookie) {
-    canvas.one("click", function() {
-      cookie.pokeCookie();
+var CookieAnimator = (function () {
+  var setUpPoke = function (canvas, context, cookie) {
+    canvas.one("click", function () {
+      cookie.pokeCookie()
       $.ajax({
         url: "http://fortunecookieapi.com/v1/cookie",
         crossDomain: true,
-        success: function(result) {
-          cookie.breakCookie();
-          result = result[0];
-          context.fillText(result.fortune.message, -canvas.width() / 4 + 25, -canvas.height() / 4 + 50);
-          context.fillText(result.lesson.english + ", " + result.lesson.chinese +
-            ", " +
-            result.lesson.pronunciation, -canvas.width() / 4 + 25, -canvas.height() / 4 + 70);
-          context.fillText("Lucky numbers: " + result.lotto.numbers.join(" "), -canvas.width() / 4 + 25, -canvas.height() / 4 + 90);
+        success: function (result) {
+          $(cookie.breakCookie()).one("break", function () {
+            result = result[0];
+            context.fillText(result.fortune.message, -canvas.width() / 4 +
+              25, -canvas.height() / 4 + 50);
+            context.fillText(result.lesson.english + ", " + result.lesson.chinese +
+              ", " + result.lesson.pronunciation, -canvas.width() / 4 + 25, -
+              canvas.height() / 4 + 70);
+            context.fillText("Lucky numbers: " + result.lotto.numbers.join(
+              " "), -canvas.width() / 4 + 25, -canvas.height() / 4 + 90);
+            setUpReset(canvas, context, cookie);
+          });
         },
-        error: function(xhr) {
-          // deal with this later
-        },
-        complete: function() {
+        error: function (xhr) {
           setUpReset(canvas, context, cookie);
         }
       });
     });
   };
 
-  var setUpReset = function(canvas, context, cookie) {
-    context.fillText("Click to reset...", -canvas.width() / 4 + 50, canvas.height() / 2);
+  var setUpReset = function (canvas, context, cookie) {
+    context.fillText("Click to reset...", -canvas.width() / 4 + 50, canvas.height() /
+      2);
 
-    canvas.one("click", function() {
+    canvas.one("click", function () {
       cookie.reset();
       setUpPoke(canvas, context, cookie);
     });
@@ -56,7 +59,7 @@ var CookieAnimator = (function() {
   };
 })();
 
-var CookieHalf = function(srcUrl, xPos, yPos, context) {
+var CookieHalf = function (srcUrl, xPos, yPos, context) {
   this.x = xPos;
   this.y = yPos;
   this.context = context;
@@ -65,67 +68,100 @@ var CookieHalf = function(srcUrl, xPos, yPos, context) {
   this.image.src = srcUrl;
 
   var that = this;
-  this.image.onload = function() {
+  this.image.onload = function () {
     context.drawImage(that.image, that.x, that.y);
   };
 }
 
 CookieHalf.prototype = {
-  getX: function() {
+  getX: function () {
     return this.x;
   },
-  getY: function() {
+  getY: function () {
     return this.y;
   },
-  getImage: function() {
+  getImage: function () {
     return this.image;
+  },
+  move: function (x, y) {
+    x = x || 0;
+    y = y || 0;
+    this.x += x;
+    this.y += y;
+    this.context.drawImage(this.image, this.x, this.y);
   }
 }
 
-var Cookie = function(context, canvas) {
+var Cookie = function (context, canvas) {
   this.canvasWidth = canvas.width;
   this.canvasHeight = canvas.height;
   this.context = context;
-  this.rotation = 0;
+  // this.rotation = 0;
+  this.timesShaken = 0;
   this.shouldAnimate = false;
   this.reset();
 };
 
 Cookie.prototype = {
-  reset: function() {
-    this.context.clearRect(-this.canvasWidth / 2, -this.canvasHeight / 2, this.canvasWidth, this.canvasHeight);
-    this.left = new CookieHalf("fortune_cookie_left.png", -this.canvasWidth / 4, -this.canvasHeight / 4, this.context);
-    this.right = new CookieHalf("fortune_cookie_right.png", -this.canvasWidth / 4 + this.left.getImage().width - 19, -this.canvasHeight / 4 + 1, this.context);
+  reset: function () {
+    this.context.clearRect(-this.canvasWidth / 2, -this.canvasHeight / 2, this.canvasWidth,
+      this.canvasHeight);
+    this.left = new CookieHalf("fortune_cookie_left.png", -this.canvasWidth / 4, -this.canvasHeight /
+      4, this.context);
+    this.right = new CookieHalf("fortune_cookie_right.png", -this.canvasWidth / 4 + this.left
+      .getImage().width - 19, -this.canvasHeight / 4 + 1, this.context);
+    return this;
   },
 
-  breakCookie: function() {
+  breakCookie: function () {
     this.shouldAnimate = false;
     this.context.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
-    this.context.rotate(-this.rotation);
-    this.rotation = 0;
+    // this.context.rotate(-this.rotation);
+    // this.rotation = 0;
+
+    if (this.timesShaken > 100) {
+      $(this).trigger("break");
+    }
+
+    return this;
   },
 
-  shakeCookie: function(startTime) {
-    if (this.shouldAnimate) {
+  shakeCookie: function (startTime) {
+    if (this.shouldAnimate || this.timesShaken < 100) {
       var time = (new Date()).getTime() - startTime;
       if ((time / 10) > 1) {
-        this.rotation += .1;
-        this.context.clearRect(-this.canvasWidth / 2, -this.canvasHeight / 2, this.canvasWidth, this.canvasHeight);
-        this.context.rotate(.1);
-        this.context.drawImage(this.left.getImage(), 0, 0);
-        this.context.drawImage(this.right.getImage(), this.left.getImage().width - 18, 1);
-        startTime = time
+        // this.rotation += .1;
+        this.context.clearRect(-this.canvasWidth / 2, -this.canvasHeight / 2, this.canvasWidth,
+          this.canvasHeight);
+        // this.context.rotate(.1);
+        this.left.move(this.movement);
+        this.right.move(this.movement);
+        // this.context.drawImage(this.left.getImage(), 0, 0);
+        // this.context.drawImage(this.right.getImage(), this.left.getImage().width - 18, 1);
+        startTime = time;
+        ++this.timesShaken;
+        if (this.timesShaken % 10 === 0) {
+          this.movement = this.movement * -1;
+        }
       }
 
       var that = this;
-      requestAnimFrame(function() {
+      requestAnimFrame(function () {
         that.shakeCookie(startTime);
       });
+    } else if (!this.hasBroken) {
+      $(this).trigger("break");
     }
+
+    return this;
   },
 
-  pokeCookie: function() {
+  pokeCookie: function () {
     this.shouldAnimate = true;
+    this.timesShaken = -5;
+    this.movement = -1;
     this.shakeCookie((new Date()).getTime());
+    this.hasBroken = false;
+    return this;
   }
 };
