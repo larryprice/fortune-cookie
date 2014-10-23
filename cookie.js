@@ -26,6 +26,8 @@ var CookieAnimator = (function () {
         crossDomain: true,
         success: function (result) {
           $(cookie.breakCookie()).one("break", function () {
+            this.context.clearRect(-this.canvasWidth / 2, -this.canvasHeight /
+              2, this.canvasWidth, this.canvasHeight);
             result = result[0];
             context.fillText(result.fortune.message, -canvas.width() / 4 +
               25, -canvas.height() / 4 + 50);
