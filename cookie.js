@@ -6,6 +6,9 @@ window.requestAnimFrame = (function (callback) {
     };
 })();
 
+var leftImageWidth = 144;
+var rightImageWidth = 174;
+
 $(document).ready(function () {
   var canvas = $("#myCanvas");
   var context = canvas[0].getContext("2d");
@@ -29,13 +32,18 @@ var CookieAnimator = (function () {
             this.context.clearRect(-this.canvasWidth / 2, -this.canvasHeight /
               2, this.canvasWidth, this.canvasHeight);
             result = result[0];
-            context.fillText(result.fortune.message, -canvas.width() / 4 +
-              25, -canvas.height() / 4 + 50);
-            context.fillText(result.lesson.english + ", " + result.lesson.chinese +
-              ", " + result.lesson.pronunciation, -canvas.width() / 4 + 25, -
-              canvas.height() / 4 + 70);
-            context.fillText("Lucky numbers: " + result.lotto.numbers.join(
-              " "), -canvas.width() / 4 + 25, -canvas.height() / 4 + 90);
+
+            var maxWidth = canvas.width() / 2 + 50;
+            var leftTab = -canvas.width() / 4 + 10;
+            var lastYPosition = wrapText(context, result.fortune.message, leftTab, -canvas.height() /
+              4 + 50, maxWidth);
+
+            lastYPosition = wrapText(context, result.lesson.english + ", " + result.lesson.chinese +
+              ", " + result.lesson.pronunciation,
+              leftTab, lastYPosition + 20, maxWidth);
+
+            context.fillText("Lucky numbers: " + result.lotto.numbers.join(" "), leftTab,
+              lastYPosition + 20);
             setUpReset(canvas, context, cookie);
           });
         },
@@ -54,6 +62,26 @@ var CookieAnimator = (function () {
       cookie.reset();
       setUpPoke(canvas, context, cookie);
     });
+  };
+
+  var wrapText = function (context, text, x, y, maxWidth) {
+    var words = text.split(' ');
+    var line = '';
+
+    for (var n = 0; n < words.length; n++) {
+      var testLine = line + words[n] + ' ';
+      var metrics = context.measureText(testLine);
+      var testWidth = metrics.width;
+      if (testWidth > maxWidth && n > 0) {
+        context.fillText(line, x, y);
+        line = words[n] + ' ';
+        y += 16;
+      } else {
+        line = testLine;
+      }
+    }
+    context.fillText(line, x, y);
+    return y;
   };
 
   return {
@@ -110,8 +138,8 @@ Cookie.prototype = {
       this.canvasHeight);
     this.left = new CookieHalf("fortune_cookie_left.png", -this.canvasWidth / 4, -this.canvasHeight /
       4, this.context);
-    this.right = new CookieHalf("fortune_cookie_right.png", -this.canvasWidth / 4 + this.left
-      .getImage().width - 19, -this.canvasHeight / 4 + 1, this.context);
+    this.right = new CookieHalf("fortune_cookie_right.png", -this.canvasWidth / 4 +
+      leftImageWidth - 19, -this.canvasHeight / 4 + 1, this.context);
     return this;
   },
 
