@@ -136,9 +136,9 @@ Cookie.prototype = {
   reset: function () {
     this.context.clearRect(-this.canvasWidth / 2, -this.canvasHeight / 2, this.canvasWidth,
       this.canvasHeight);
-    this.left = new CookieHalf("fortune_cookie_left.png", -this.canvasWidth / 4, -this.canvasHeight /
+    this.left = new CookieHalf("/images/fortune_cookie_left.png", -this.canvasWidth / 4, -this.canvasHeight /
       4, this.context);
-    this.right = new CookieHalf("fortune_cookie_right.png", -this.canvasWidth / 4 +
+    this.right = new CookieHalf("/images/fortune_cookie_right.png", -this.canvasWidth / 4 +
       leftImageWidth - 19, -this.canvasHeight / 4 + 1, this.context);
     return this;
   },
