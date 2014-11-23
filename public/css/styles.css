@@ -1,0 +1,48 @@
+html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
+  margin: 0;
+}
+
+.wrapper {
+  min-height: 100%;
+  height: auto !important;
+  height: 100%;
+  /* Negative indent footer by its height */
+  margin: 0 auto -100px;
+}
+
+#myCanvas {
+  left: 50%;
+  margin-left: -289px;
+  position: absolute;
+  margin-top: 30px;
+}
+
+.adsbygoogle {
+  position: absolute;
+  left: 50%;
+  margin-left: -369px;
+}
+
+h1,h2,h3 {
+  margin-top: 0;
+  margin-bottom: 0;
+  font-family: 'Varela Round', sans-serif;
+}
+
+.text-center {
+  text-align: center;
+}
+
+div {
+  display: inline-block;
+  width: 100%;
+}
+
+.title {
+  margin-top: 10px;
+}
