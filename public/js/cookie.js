@@ -25,7 +25,7 @@ var CookieAnimator = (function () {
     canvas.one("click", function () {
       cookie.pokeCookie()
       $.ajax({
-        url: "http://fortunecookieapi.com/v1/cookie",
+        url: "https://fortunecookieapi.herokuapp.com/v1/cookie",
         crossDomain: true,
         success: function (result) {
           $(cookie.breakCookie()).one("break", function () {
